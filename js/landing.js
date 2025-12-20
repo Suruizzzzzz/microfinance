@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // CTA/navigation helpers
     window.handleCTA = function() {
-        // Navigate to the login page (index.html) so users can sign in or register
         window.location.href = 'index.html';
     };
 
@@ -208,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const target = document.querySelector(href);
                 if (target) {
-                    const offsetTop = target.offsetTop - 70; // Account for fixed navbar
+                    const offsetTop = target.offsetTop - 70; 
                     window.scrollTo({
                         top: offsetTop,
                         behavior: 'smooth'
@@ -218,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // scrollToSection used by inline onclick handlers in HTML
     window.scrollToSection = function(sectionId) {
         const el = document.getElementById(sectionId);
         if (!el) return;

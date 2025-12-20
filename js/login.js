@@ -1,3 +1,4 @@
+// HARDCODED PA TO
 lucide.createIcons();
 // Theme Toggle
 const themeToggle = document.getElementById("themeToggle")
@@ -51,8 +52,7 @@ icon.setAttribute("data-lucide", "eye")
 window.lucide.createIcons()
 }
 
-// Simple password strength evaluation for UI only (no real security checks)
-// HARDCODED: this is just front-end feedback; replace with real backend validation pag bakasyon na.
+
 function getPasswordStrength(password) {
 let score = 0;
 if (password.length >= 8) score++;
@@ -101,7 +101,6 @@ return;
 
 const { score, label, cssClass, width } = getPasswordStrength(password);
 bar.style.width = width;
-// Basic color mapping for the bar
 if (score <= 2) {
 bar.style.backgroundColor = "#ef4444";
 } else if (score === 3) {
@@ -114,10 +113,8 @@ labelEl.textContent = "Password strength: " + label;
 labelEl.className = "password-strength-label " + cssClass;
 }
 
-// HARDCODED demo OTP value for UI only – replace with backend later
 const DEMO_OTP_CODE = "123456";
 
-// Login Form Handler
 function handleLogin(e) {
 e.preventDefault()
 
@@ -126,7 +123,6 @@ const password = document.getElementById("loginPassword").value
 
 console.log("Login:", { email, password })
 
-// HARDCODED: fake successful login and redirect to dashboard UI
 Swal.fire({
 icon: "success",
 title: "Login successful (demo)",
@@ -151,7 +147,6 @@ const otpCode = document.getElementById("otpCode").value.trim()
 
 // Validation
 const strength = getPasswordStrength(password)
-// Do not allow weak passwords in this UI (require at least "Medium")
 if (strength.score < 3) {
 Swal.fire({
 icon: "error",
@@ -192,7 +187,6 @@ confirmButtonColor: "#2ca078"
 return
 }
 
-// HARDCODED OTP check for UI only
 if (otpCode !== DEMO_OTP_CODE) {
 Swal.fire({
 icon: "error",
@@ -205,7 +199,7 @@ return
 
 console.log("Register:", { name, email, password })
 
-// HARDCODED: fake successful registration and redirect to dashboard UI
+// FAKE SUCCESSFUL
 Swal.fire({
 icon: "success",
 title: "Account created (demo)",
@@ -293,7 +287,6 @@ function hideOtpPopup() {
     otpOverlay.classList.remove('active');
     document.body.style.overflow = '';
     
-    // Clear timer if exists
     if (otpTimerInterval) {
         clearInterval(otpTimerInterval);
     }
@@ -305,12 +298,11 @@ function startOtpTimer() {
     const resendOtp = document.getElementById('resendOtp');
     if (!otpTimer || !resendOtp) return;
     
-    // Clear any existing timer
     if (otpTimerInterval) {
         clearInterval(otpTimerInterval);
     }
     
-    let timeLeft = 120; // 2 minutes
+    let timeLeft = 120;
     otpTimer.textContent = `(02:${timeLeft < 10 ? '0' + timeLeft : timeLeft})`;
     resendOtp.style.display = 'none';
     
@@ -424,15 +416,15 @@ function initOtp() {
                 return;
             }
             
-            // In a real app, you would verify the OTP with your backend
-            if (otpCode === '123456') { // Demo OTP
+            // DEMO ONLY 
+            if (otpCode === '123456') { 
                 const otpCodeInput = document.getElementById('otpCode');
                 if (otpCodeInput) {
                     otpCodeInput.value = otpCode;
                 }
                 hideOtpPopup();
                 
-                // Show success message
+                // SUCCESS MESSAGE 
                 Swal.fire({
                     icon: 'success',
                     title: 'Email Verified',
@@ -442,7 +434,7 @@ function initOtp() {
                     timerProgressBar: true
                 });
                 
-                // Hide the OTP section since it's verified
+                // HIDE 
                 const otpSection = document.getElementById('otpSection');
                 if (otpSection) {
                     otpSection.style.display = 'none';
@@ -463,19 +455,17 @@ function initOtp() {
         resendOtp.addEventListener('click', (e) => {
             e.preventDefault();
             
-            // Show loading state
+            // LOADING
             resendOtp.style.display = 'none';
             const otpTimer = document.getElementById('otpTimer');
             if (otpTimer) {
                 otpTimer.textContent = 'Sending...';
             }
-            
-            // Simulate API call
+
             setTimeout(() => {
                 generateOtpInputs();
                 startOtpTimer();
                 
-                // Show success message
                 Swal.fire({
                     icon: 'success',
                     title: 'New OTP Sent',
@@ -498,14 +488,12 @@ if (registerPasswordInput) {
 registerPasswordInput.addEventListener("input", (e) => {
 updatePasswordStrengthUI(e.target.value)
 })
-// Initial state
 updatePasswordStrengthUI(registerPasswordInput.value || "")
 }
 
 const sendOtpButton = document.getElementById("sendOtpButton")
 if (sendOtpButton) {
 sendOtpButton.addEventListener("click", () => {
-// HARDCODED: sending OTP for UI only ayusin ko sa pasko 
 Swal.fire({
 icon: "info",
 title: "Demo OTP sent (UI only)",

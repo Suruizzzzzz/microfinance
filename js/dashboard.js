@@ -78,7 +78,7 @@
    
    // Initialize Lucide icons after page load
    document.addEventListener("DOMContentLoaded", () => {
-     const lucide = window.lucide // Declare the lucide variable
+     const lucide = window.lucide 
      if (typeof lucide !== "undefined") {
        lucide.createIcons()
      }
