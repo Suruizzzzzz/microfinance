@@ -217,10 +217,283 @@ window.location.href = "modules/dashboard.html"
 })
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-window.lucide.createIcons()
+// OTP Functionality
+let otpTimerInterval;
 
-const registerPasswordInput = document.getElementById("registerPassword")
+// Generate OTP inputs
+function generateOtpInputs() {
+    const otpInputsContainer = document.getElementById('otpInputs');
+    if (!otpInputsContainer) return;
+    
+    otpInputsContainer.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 1;
+        input.className = 'otp-input';
+        input.dataset.index = i;
+        input.inputMode = 'numeric';
+        input.pattern = '\d*';
+        
+        // Handle input
+        input.addEventListener('input', (e) => {
+            const value = e.target.value;
+            if (value.length === 1) {
+                e.target.classList.add('filled');
+                const nextInput = e.target.nextElementSibling;
+                if (nextInput && nextInput.classList.contains('otp-input')) {
+                    nextInput.focus();
+                }
+            } else if (value.length === 0) {
+                e.target.classList.remove('filled');
+            }
+        });
+        
+        // Handle backspace
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && e.target.value === '') {
+                const prevInput = e.target.previousElementSibling;
+                if (prevInput && prevInput.classList.contains('otp-input')) {
+                    prevInput.focus();
+                }
+            }
+        });
+        
+        // Prevent non-numeric input
+        input.addEventListener('keypress', (e) => {
+            if (!/\d/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+        
+        otpInputsContainer.appendChild(input);
+    }
+    
+    // Focus first input
+    const firstInput = otpInputsContainer.querySelector('.otp-input');
+    if (firstInput) firstInput.focus();
+}
+
+// Show OTP popup
+function showOtpPopup() {
+    const otpOverlay = document.getElementById('otpOverlay');
+    if (!otpOverlay) return;
+    
+    otpOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    generateOtpInputs();
+    startOtpTimer();
+}
+
+// Hide OTP popup
+function hideOtpPopup() {
+    const otpOverlay = document.getElementById('otpOverlay');
+    if (!otpOverlay) return;
+    
+    otpOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Clear timer if exists
+    if (otpTimerInterval) {
+        clearInterval(otpTimerInterval);
+    }
+}
+
+// Start OTP timer
+function startOtpTimer() {
+    const otpTimer = document.getElementById('otpTimer');
+    const resendOtp = document.getElementById('resendOtp');
+    if (!otpTimer || !resendOtp) return;
+    
+    // Clear any existing timer
+    if (otpTimerInterval) {
+        clearInterval(otpTimerInterval);
+    }
+    
+    let timeLeft = 120; // 2 minutes
+    otpTimer.textContent = `(02:${timeLeft < 10 ? '0' + timeLeft : timeLeft})`;
+    resendOtp.style.display = 'none';
+    
+    otpTimerInterval = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        otpTimer.textContent = `(${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')})`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(otpTimerInterval);
+            otpTimer.textContent = '';
+            resendOtp.style.display = 'inline';
+        }
+    }, 1000);
+}
+
+// Initialize OTP functionality
+function initOtp() {
+    const otpOverlay = document.getElementById('otpOverlay');
+    const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+    const closeOtpPopup = document.getElementById('closeOtpPopup');
+    const otpForm = document.getElementById('otpForm');
+    const resendOtp = document.getElementById('resendOtp');
+    const registerEmail = document.getElementById('registerEmail');
+    
+    // Show OTP section when email is filled
+    if (registerEmail) {
+        registerEmail.addEventListener('blur', function() {
+            const otpSection = document.getElementById('otpSection');
+            if (this.value && this.value.includes('@') && otpSection) {
+                otpSection.style.display = 'block';
+            }
+        });
+    }
+    
+    // Verify Email Button
+    if (verifyEmailBtn) {
+        verifyEmailBtn.addEventListener('click', () => {
+            const email = document.getElementById('registerEmail').value;
+            if (!email) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Email Required',
+                    text: 'Please enter your email address first',
+                    confirmButtonColor: '#2ca078'
+                });
+                return;
+            }
+            
+            // Show loading state
+            verifyEmailBtn.disabled = true;
+            verifyEmailBtn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Sending OTP...';
+            window.lucide.createIcons();
+            
+            // Simulate API call
+            setTimeout(() => {
+                verifyEmailBtn.disabled = false;
+                verifyEmailBtn.innerHTML = '<i data-lucide="check"></i> Verify Email';
+                window.lucide.createIcons();
+                showOtpPopup();
+                
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'OTP Sent',
+                    text: `A 6-digit code has been sent to ${email}`,
+                    confirmButtonColor: '#2ca078',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }, 1000);
+        });
+    }
+    
+    // Close OTP Popup
+    if (closeOtpPopup) {
+        closeOtpPopup.addEventListener('click', hideOtpPopup);
+    }
+    
+    // OTP Form Submission
+    if (otpForm) {
+        otpForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get OTP code
+            const otpInputsContainer = document.getElementById('otpInputs');
+            if (!otpInputsContainer) return;
+            
+            const inputs = otpInputsContainer.querySelectorAll('.otp-input');
+            let otpCode = '';
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (input.value === '') {
+                    isValid = false;
+                    input.classList.add('error');
+                } else {
+                    input.classList.remove('error');
+                    otpCode += input.value;
+                }
+            });
+            
+            if (!isValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid OTP',
+                    text: 'Please fill in all digits',
+                    confirmButtonColor: '#2ca078'
+                });
+                return;
+            }
+            
+            // In a real app, you would verify the OTP with your backend
+            if (otpCode === '123456') { // Demo OTP
+                const otpCodeInput = document.getElementById('otpCode');
+                if (otpCodeInput) {
+                    otpCodeInput.value = otpCode;
+                }
+                hideOtpPopup();
+                
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Email Verified',
+                    text: 'Your email has been successfully verified!',
+                    confirmButtonColor: '#2ca078',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                
+                // Hide the OTP section since it's verified
+                const otpSection = document.getElementById('otpSection');
+                if (otpSection) {
+                    otpSection.style.display = 'none';
+                }
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid OTP',
+                    text: 'The code you entered is incorrect. Please try again.',
+                    confirmButtonColor: '#2ca078'
+                });
+            }
+        });
+    }
+    
+    // Resend OTP
+    if (resendOtp) {
+        resendOtp.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Show loading state
+            resendOtp.style.display = 'none';
+            const otpTimer = document.getElementById('otpTimer');
+            if (otpTimer) {
+                otpTimer.textContent = 'Sending...';
+            }
+            
+            // Simulate API call
+            setTimeout(() => {
+                generateOtpInputs();
+                startOtpTimer();
+                
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'New OTP Sent',
+                    text: 'A new verification code has been sent to your email',
+                    confirmButtonColor: '#2ca078',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }, 1000);
+        });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    window.lucide.createIcons();
+    initOtp();
+
+    const registerPasswordInput = document.getElementById("registerPassword")
 if (registerPasswordInput) {
 registerPasswordInput.addEventListener("input", (e) => {
 updatePasswordStrengthUI(e.target.value)
